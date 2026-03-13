@@ -9,7 +9,7 @@
   <version>1.0.0-SNAPSHOT</version>
 
   <name>Nanopub Test Suite Connector</name>
-  <description>A connector for the Nanopub Test Suite</description>
+  <description>Connector for the Nanopub Test Suite</description>
   <url>https://github.com/Nanopublication/nanopub-testsuite-connector-java</url>
   <licenses>
     <license>
