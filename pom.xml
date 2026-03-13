@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.nanopub</groupId>
+  <artifactId>nanopub-testsuite-connector</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <name>Nanopub Test Suite Connector</name>
+  <description>A connector for the Nanopub Test Suite</description>
+  <url>https://github.com/Nanopublication/nanopub-testsuite-connector-java</url>
+  <licenses>
+    <license>
+      <name>MIT license</name>
+      <url>https://opensource.org/license/mit</url>
+    </license>
+  </licenses>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <junit.jupiter.version>5.13.4</junit.jupiter.version>
+    <trustyuri.version>1.23</trustyuri.version>
+    <commons.compress.version>1.28.0</commons.compress.version>
+    <commons.io.version>2.21.0</commons.io.version>
+    <commons.lang3.version>3.20.0</commons.lang3.version>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.trustyuri</groupId>
+      <artifactId>trustyuri</artifactId>
+      <version>${trustyuri.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>${commons.compress.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons.io.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons.lang3.version}</version>
+    </dependency>
+  </dependencies>
+
+  <developers>
+    <developer>
+      <id>ashleycaselli</id>
+      <name>Ashley Caselli</name>
+      <organization>Knowledge Pixels</organization>
+      <organizationUrl>https://knowledgepixels.com/</organizationUrl>
+    </developer>
+  </developers>
+</project>
