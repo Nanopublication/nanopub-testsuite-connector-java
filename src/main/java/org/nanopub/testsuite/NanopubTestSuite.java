@@ -2,6 +2,7 @@ package org.nanopub.testsuite;
 
 import net.trustyuri.TrustyUriUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -221,4 +222,13 @@ public class NanopubTestSuite {
     private static boolean isNanopubFile(String name) {
         return name.endsWith(".trig") || name.endsWith(".nq") || name.endsWith(".xml");
     }
+
+    public File getTransformProfile() {
+        Path profile = root.resolve("transform").resolve("profile.yaml");
+        if (!Files.exists(profile)) {
+            throw new IllegalStateException("profile.yaml not found in testsuite @ " + version);
+        }
+        return profile.toFile();
+    }
+
 }
