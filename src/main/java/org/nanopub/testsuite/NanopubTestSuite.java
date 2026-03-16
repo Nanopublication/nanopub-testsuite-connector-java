@@ -11,6 +11,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+/**
+ * Represents a local copy of the nanopub test suite, which is downloaded on demand from GitHub Test Suite repository.
+ */
 public class NanopubTestSuite {
 
     private static final Map<String, NanopubTestSuite> instances = new ConcurrentHashMap<>();
