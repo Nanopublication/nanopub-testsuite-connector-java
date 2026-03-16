@@ -9,3 +9,4 @@
 /.settings
 .DS_Store
 node_modules/
+release.properties
