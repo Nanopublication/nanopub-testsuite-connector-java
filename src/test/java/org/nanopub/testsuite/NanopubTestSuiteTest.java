@@ -52,17 +52,14 @@ public class NanopubTestSuiteTest {
 
     @Test
     void lookupByKnownArtifactCode() {
-        // RA6T... is present in both valid/signed and invalid/signed — use a trusty one
-        Optional<TestSuiteEntry> entry = suite.getByArtifactCode(
-                "RAPpJU5UOB4pavfWyk7FE3WQiam5yBpmIlviAQWtBSC4M");
+        Optional<TestSuiteEntry> entry = suite.getByArtifactCode("RAPpJU5UOB4pavfWyk7FE3WQiam5yBpmIlviAQWtBSC4M", TestSuiteCategory.VALID);
         assertTrue(entry.isPresent());
         assertEquals(TestSuiteSubfolder.TRUSTY, entry.get().getSubfolder());
     }
 
     @Test
     void lookupByNanopubUri() {
-        Optional<TestSuiteEntry> entry = suite.getByNanopubUri(
-                "http://example.org/nanopub-validator-example/RAPpJU5UOB4pavfWyk7FE3WQiam5yBpmIlviAQWtBSC4M");
+        Optional<TestSuiteEntry> entry = suite.getByNanopubUri("http://example.org/nanopub-validator-example/RAPpJU5UOB4pavfWyk7FE3WQiam5yBpmIlviAQWtBSC4M", TestSuiteCategory.VALID);
         assertTrue(entry.isPresent());
     }
 

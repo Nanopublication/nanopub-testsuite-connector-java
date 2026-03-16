@@ -38,8 +38,8 @@ public class NanopubTestSuite {
     private final List<TestSuiteEntry> valid = new ArrayList<>();
     private final List<TestSuiteEntry> invalid = new ArrayList<>();
     private final List<TransformTestCase> transformCases = new ArrayList<>();
-    private final Map<String, TestSuiteEntry> byArtifactCode = new HashMap<>();
-    private final Map<String, TestSuiteEntry> byNanopubUri = new HashMap<>();
+    private final Map<String, List<TestSuiteEntry>> byArtifactCode = new HashMap<>();
+    private final Map<String, List<TestSuiteEntry>> byNanopubUri = new HashMap<>();
 
     private NanopubTestSuite(String version) {
         this.version = version;
@@ -102,10 +102,10 @@ public class NanopubTestSuite {
         String artifactCode = nanopubUri != null ? TrustyUriUtils.getArtifactCode(nanopubUri) : null;
         TestSuiteEntry entry = new TestSuiteEntry(name, path, cat, sub, nanopubUri, artifactCode);
         if (nanopubUri != null) {
-            byNanopubUri.put(nanopubUri, entry);
+            byNanopubUri.computeIfAbsent(nanopubUri, k -> new ArrayList<>()).add(entry);
         }
         if (artifactCode != null) {
-            byArtifactCode.put(artifactCode, entry);
+            byArtifactCode.computeIfAbsent(artifactCode, k -> new ArrayList<>()).add(entry);
         }
         return entry;
     }
@@ -155,15 +155,31 @@ public class NanopubTestSuite {
     /**
      * Look up any indexed entry by its artifact code.
      */
-    public Optional<TestSuiteEntry> getByArtifactCode(String artifactCode) {
-        return Optional.ofNullable(byArtifactCode.get(artifactCode));
+    public List<TestSuiteEntry> getByArtifactCode(String artifactCode) {
+        return Collections.unmodifiableList(byArtifactCode.getOrDefault(artifactCode, Collections.emptyList()));
+    }
+
+    public Optional<TestSuiteEntry> getByArtifactCode(String artifactCode, TestSuiteCategory category) {
+        return getByArtifactCode(artifactCode).stream()
+                .filter(e -> e.getCategory() == category)
+                .findFirst();
     }
 
     /**
-     * Look up any indexed entry by its full nanopub URI.
+     * Look up all indexed entries sharing a nanopub URI (may span multiple categories).
      */
-    public Optional<TestSuiteEntry> getByNanopubUri(String nanopubUri) {
-        return Optional.ofNullable(byNanopubUri.get(nanopubUri));
+    public List<TestSuiteEntry> getByNanopubUri(String nanopubUri) {
+        return Collections.unmodifiableList(byNanopubUri.getOrDefault(nanopubUri, Collections.emptyList()));
+    }
+
+    /**
+     * Look up a single entry by nanopub URI, filtered to a specific category.
+     * Returns empty if no match exists for that URI + category combination.
+     */
+    public Optional<TestSuiteEntry> getByNanopubUri(String nanopubUri, TestSuiteCategory category) {
+        return getByNanopubUri(nanopubUri).stream()
+                .filter(e -> e.getCategory() == category)
+                .findFirst();
     }
 
     /**
@@ -195,8 +211,6 @@ public class NanopubTestSuite {
         return version.equals("main");
     }
 
-    // ---- Helpers ----
-
     private static String extractNanopubUri(Path path) {
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
             return lines.filter(l -> l.startsWith("@prefix this:"))
@@ -223,6 +237,11 @@ public class NanopubTestSuite {
         return name.endsWith(".trig") || name.endsWith(".nq") || name.endsWith(".xml");
     }
 
+    /**
+     * Returns the transform profile YAML file, which contains the expected RDF transformations for each test case.
+     *
+     * @return the transform profile file
+     */
     public File getTransformProfile() {
         Path profile = root.resolve("transform").resolve("profile.yaml");
         if (!Files.exists(profile)) {
