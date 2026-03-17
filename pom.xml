@@ -59,6 +59,11 @@
   <profiles>
     <profile>
       <id>release</id>
+      <activation>
+        <property>
+          <name>env.CI</name>
+        </property>
+      </activation>
       <build>
         <plugins>
           <plugin>
