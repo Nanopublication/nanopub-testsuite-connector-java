@@ -1,3 +1,8 @@
+[![Maven Central Version](https://img.shields.io/maven-central/v/org.nanopub/nanopub-testsuite-connector)](https://mvnrepository.com/artifact/org.nanopub/nanopub-testsuite-connector)
+[![Tests](https://github.com/Nanopublication/nanopub-testsuite-connector-java/actions/workflows/maven-test.yml/badge.svg)](https://github.com/Nanopublication/nanopub-testsuite-connector-java/actions/workflows/maven-test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/Nanopublication/nanopub-testsuite-connector-java/badge.svg?branch=master)](https://coveralls.io/github/Nanopublication/nanopub-testsuite-connector-java?branch=master)
+[![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
+
 # Nanopublication Test Suite Connector
 
 A Java connector that downloads and exposes the [Nanopublication Test Suite (nanopub-testsuite)](https://github.com/nanopublication/nanopub-testsuite) contents for programmatic use.
