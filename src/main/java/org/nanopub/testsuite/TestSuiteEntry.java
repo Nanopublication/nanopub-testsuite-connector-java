@@ -1,5 +1,7 @@
 package org.nanopub.testsuite;
 
+import net.trustyuri.ArtifactCode;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +18,7 @@ public class TestSuiteEntry {
     private final TestSuiteCategory category;
     private final TestSuiteSubfolder subfolder;
     private final String nanopubUri;
-    private final String artifactCode;
+    private final ArtifactCode artifactCode;
 
     /**
      * Constructor for TestSuiteEntry.
@@ -28,7 +30,7 @@ public class TestSuiteEntry {
      * @param nanopubUri   The URI of the nanopublication.
      * @param artifactCode The artifact code associated with the nanopublication.
      */
-    TestSuiteEntry(String name, Path path, TestSuiteCategory category, TestSuiteSubfolder subfolder, String nanopubUri, String artifactCode) {
+    TestSuiteEntry(String name, Path path, TestSuiteCategory category, TestSuiteSubfolder subfolder, String nanopubUri, ArtifactCode artifactCode) {
         this.name = name;
         this.path = path;
         this.category = category;
@@ -78,7 +80,7 @@ public class TestSuiteEntry {
      *
      * @return The artifact code of the nanopublication.
      */
-    public String getArtifactCode() {
+    public ArtifactCode getArtifactCode() {
         return artifactCode;
     }
 

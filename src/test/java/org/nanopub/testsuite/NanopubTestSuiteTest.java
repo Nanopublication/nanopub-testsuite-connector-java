@@ -1,5 +1,6 @@
 package org.nanopub.testsuite;
 
+import net.trustyuri.ArtifactCode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +53,8 @@ public class NanopubTestSuiteTest {
 
     @Test
     void lookupByKnownArtifactCode() {
-        Optional<TestSuiteEntry> entry = suite.getByArtifactCode("RAPpJU5UOB4pavfWyk7FE3WQiam5yBpmIlviAQWtBSC4M", TestSuiteCategory.VALID);
+        ArtifactCode artifactCode = ArtifactCode.of("RAPpJU5UOB4pavfWyk7FE3WQiam5yBpmIlviAQWtBSC4M");
+        Optional<TestSuiteEntry> entry = suite.getByArtifactCode(artifactCode, TestSuiteCategory.VALID);
         assertTrue(entry.isPresent());
         assertEquals(TestSuiteSubfolder.TRUSTY, entry.get().getSubfolder());
     }

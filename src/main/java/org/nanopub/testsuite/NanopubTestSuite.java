@@ -1,9 +1,22 @@
 package org.nanopub.testsuite;
 
+import net.trustyuri.ArtifactCode;
 import net.trustyuri.TrustyUriUtils;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+import org.eclipse.rdf4j.model.util.Values;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.rio.*;
+import org.eclipse.rdf4j.rio.helpers.StatementCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +30,7 @@ import java.util.stream.Stream;
 public class NanopubTestSuite {
 
     private static final Map<String, NanopubTestSuite> instances = new ConcurrentHashMap<>();
+    private final static Logger logger = LoggerFactory.getLogger(NanopubTestSuite.class);
 
     /**
      * Uses the latest version of the testsuite (main branch).
@@ -41,7 +55,7 @@ public class NanopubTestSuite {
     private final List<TestSuiteEntry> valid = new ArrayList<>();
     private final List<TestSuiteEntry> invalid = new ArrayList<>();
     private final List<TransformTestCase> transformCases = new ArrayList<>();
-    private final Map<String, List<TestSuiteEntry>> byArtifactCode = new HashMap<>();
+    private final Map<ArtifactCode, List<TestSuiteEntry>> byArtifactCode = new HashMap<>();
     private final Map<String, List<TestSuiteEntry>> byNanopubUri = new HashMap<>();
 
     private NanopubTestSuite(String version) {
@@ -102,7 +116,8 @@ public class NanopubTestSuite {
     private TestSuiteEntry buildEntry(Path path, TestSuiteCategory cat, TestSuiteSubfolder sub) {
         String name = path.getFileName().toString();
         String nanopubUri = extractNanopubUri(path);
-        String artifactCode = nanopubUri != null ? TrustyUriUtils.getArtifactCode(nanopubUri) : null;
+        ArtifactCode artifactCode = TrustyUriUtils.isPotentialTrustyUri(nanopubUri) ? ArtifactCode.of(TrustyUriUtils.getArtifactCode(nanopubUri)) : null;
+        logger.info("Indexing entry: " + name + " | category: " + cat + " | subfolder: " + sub + " | nanopub URI: " + nanopubUri + " | artifact code: " + artifactCode);
         TestSuiteEntry entry = new TestSuiteEntry(name, path, cat, sub, nanopubUri, artifactCode);
         if (nanopubUri != null) {
             byNanopubUri.computeIfAbsent(nanopubUri, k -> new ArrayList<>()).add(entry);
@@ -158,11 +173,11 @@ public class NanopubTestSuite {
     /**
      * Look up any indexed entry by its artifact code.
      */
-    public List<TestSuiteEntry> getByArtifactCode(String artifactCode) {
+    public List<TestSuiteEntry> getByArtifactCode(ArtifactCode artifactCode) {
         return Collections.unmodifiableList(byArtifactCode.getOrDefault(artifactCode, Collections.emptyList()));
     }
 
-    public Optional<TestSuiteEntry> getByArtifactCode(String artifactCode, TestSuiteCategory category) {
+    public Optional<TestSuiteEntry> getByArtifactCode(ArtifactCode artifactCode, TestSuiteCategory category) {
         return getByArtifactCode(artifactCode).stream()
                 .filter(e -> e.getCategory() == category)
                 .findFirst();
@@ -215,12 +230,27 @@ public class NanopubTestSuite {
     }
 
     private static String extractNanopubUri(Path path) {
-        try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
-            return lines.filter(l -> l.startsWith("@prefix this:"))
-                    .findFirst()
-                    .map(l -> l.replaceAll(".*<(.+)>.*", "$1"))
-                    .orElse(null);
-        } catch (IOException e) {
+        try (InputStream in = Files.newInputStream(path)) {
+            Model model = new LinkedHashModel();
+            RDFFormat format = Rio.getParserFormatForFileName(path.getFileName().toString()).orElse(RDFFormat.TRIG);
+            RDFParser parser = Rio.createParser(format);
+            parser.setRDFHandler(new StatementCollector(model));
+            parser.parse(in, path.toUri().toString());
+
+            IRI candidateUri = Values.iri("http://www.nanopub.org/nschema#Nanopublication");
+            for (Resource ctx : model.contexts()) {
+                if (!(ctx instanceof IRI)) {
+                    continue;
+                }
+                for (Statement st : model.filter(null, RDF.TYPE, candidateUri, ctx)) {
+                    Resource subj = st.getSubject();
+                    if (subj != null) {
+                        return subj.stringValue();
+                    }
+                }
+            }
+            return null;
+        } catch (IOException | RDFParseException | RDFHandlerException e) {
             return null;
         }
     }
