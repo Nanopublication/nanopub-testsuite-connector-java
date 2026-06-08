@@ -29,7 +29,7 @@
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.jupiter.version>5.13.4</junit.jupiter.version>
-    <trustyuri.version>1.24.0</trustyuri.version>
+    <trustyuri.version>1.24.1</trustyuri.version>
     <commons.compress.version>1.28.0</commons.compress.version>
     <commons.io.version>2.21.0</commons.io.version>
     <commons.lang3.version>3.20.0</commons.lang3.version>
