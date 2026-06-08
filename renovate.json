@@ -23,6 +23,17 @@
       ],
       "semanticCommitType": "build",
       "semanticCommitScope": "deps"
+    },
+    {
+      "description": "Updates to the dependencies with scope 'test' should be tagged as 'test(deps)'",
+      "matchPaths": [
+        "pom.xml"
+      ],
+      "matchDepTypes": [
+        "test"
+      ],
+      "semanticCommitType": "test",
+      "semanticCommitScope": "deps"
     }
   ]
 }
