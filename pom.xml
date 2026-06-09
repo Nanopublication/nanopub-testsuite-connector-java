@@ -28,7 +28,7 @@
     <central.publishing.plugin.version>0.10.0</central.publishing.plugin.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <junit.jupiter.version>6.1.0</junit.jupiter.version>
+    <junit-jupiter.version>6.1.0</junit-jupiter.version>
     <trustyuri.version>1.24.1</trustyuri.version>
     <commons.compress.version>1.28.0</commons.compress.version>
     <commons.io.version>2.22.0</commons.io.version>
@@ -36,6 +36,19 @@
     <rdf4j.version>5.3.1</rdf4j.version>
     <slf4j.version>2.0.18</slf4j.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -51,7 +64,6 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
