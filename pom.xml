@@ -25,7 +25,7 @@
     <jacoco.version>0.8.15</jacoco.version>
     <maven.release.plugin.version>3.3.1</maven.release.plugin.version>
     <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
-    <central.publishing.plugin.version>0.10.0</central.publishing.plugin.version>
+    <central.publishing.plugin.version>0.11.0</central.publishing.plugin.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit-jupiter.version>6.1.0</junit-jupiter.version>
