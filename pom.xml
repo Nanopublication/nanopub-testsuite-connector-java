@@ -28,7 +28,7 @@
     <central.publishing.plugin.version>0.11.0</central.publishing.plugin.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <junit-jupiter.version>6.1.0</junit-jupiter.version>
+    <junit-jupiter.version>6.1.1</junit-jupiter.version>
     <trustyuri.version>1.24.1</trustyuri.version>
     <commons.compress.version>1.28.0</commons.compress.version>
     <commons.io.version>2.22.0</commons.io.version>
