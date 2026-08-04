@@ -1,7 +1,21 @@
 package org.nanopub.testsuite;
 
-import net.trustyuri.ArtifactCode;
-import net.trustyuri.TrustyUriUtils;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
@@ -9,23 +23,21 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
-import org.eclipse.rdf4j.rio.*;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
+import net.trustyuri.ArtifactCode;
+import net.trustyuri.TrustyUriUtils;
 
 /**
- * Represents a local copy of the nanopub test suite, which is downloaded on demand from GitHub Test Suite repository.
+ * Represents a local copy of the nanopub test suite, which is downloaded on
+ * demand from GitHub Test Suite repository.
  */
 public class NanopubTestSuite {
 
@@ -184,7 +196,8 @@ public class NanopubTestSuite {
     }
 
     /**
-     * Look up all indexed entries sharing a nanopub URI (may span multiple categories).
+     * Look up all indexed entries sharing a nanopub URI (may span multiple
+     * categories).
      */
     public List<TestSuiteEntry> getByNanopubUri(String nanopubUri) {
         return Collections.unmodifiableList(byNanopubUri.getOrDefault(nanopubUri, Collections.emptyList()));
@@ -223,7 +236,8 @@ public class NanopubTestSuite {
     }
 
     /**
-     * Returns true if this instance is tracking main rather than a pinned commit.
+     * Returns true if this instance is tracking main rather than a pinned
+     * commit.
      */
     public boolean isLatest() {
         return version.equals("main");
@@ -232,7 +246,7 @@ public class NanopubTestSuite {
     private static String extractNanopubUri(Path path) {
         try (InputStream in = Files.newInputStream(path)) {
             Model model = new LinkedHashModel();
-            RDFFormat format = Rio.getParserFormatForFileName(path.getFileName().toString()).orElse(RDFFormat.TRIG);
+            RDFFormat format = resolveFormat(path.getFileName().toString());
             RDFParser parser = Rio.createParser(format);
             parser.setRDFHandler(new StatementCollector(model));
             parser.parse(in, path.toUri().toString());
@@ -255,6 +269,30 @@ public class NanopubTestSuite {
         }
     }
 
+    /**
+     * Resolves the RDF format from a testsuite file name.
+     * <p>
+     * The extension is mapped explicitly rather than via
+     * {@link Rio#getParserFormatForFileName}, because {@code .xml} is
+     * ambiguous: both RDF/XML and TriX register it, so which parser wins
+     * depends on classpath/registration order. In this testsuite {@code .xml}
+     * files are TriX, so we pin that mapping to keep parsing deterministic
+     * regardless of the RDF4J parsers on the classpath.
+     */
+    private static RDFFormat resolveFormat(String fileName) {
+        String lower = fileName.toLowerCase(Locale.ROOT);
+        if (lower.endsWith(".trig")) {
+            return RDFFormat.TRIG;
+        }
+        if (lower.endsWith(".nq")) {
+            return RDFFormat.NQUADS;
+        }
+        if (lower.endsWith(".xml") || lower.endsWith(".trix")) {
+            return RDFFormat.TRIX;
+        }
+        return Rio.getParserFormatForFileName(fileName).orElse(RDFFormat.TRIG);
+    }
+
     private static String readFile(Path path) {
         if (!Files.exists(path)) {
             return null;
@@ -271,7 +309,8 @@ public class NanopubTestSuite {
     }
 
     /**
-     * Returns the transform profile YAML file, which contains the expected RDF transformations for each test case.
+     * Returns the transform profile YAML file, which contains the expected RDF
+     * transformations for each test case.
      *
      * @return the transform profile file
      */
