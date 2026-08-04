@@ -3,6 +3,7 @@ package org.nanopub.testsuite;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +32,7 @@ class TestSuiteDownloader {
     static Path download(String version) {
         try {
             Path dir = Files.createTempDirectory("nanopub-testsuite-" + version + "-");
-            dir.toFile().deleteOnExit();
+            deleteRecursivelyOnExit(dir);
             Path tar = Files.createTempFile("nanopub-testsuite-", ".tar.gz");
             tar.toFile().deleteOnExit();
             fetch(version, tar);
@@ -41,6 +42,15 @@ class TestSuiteDownloader {
         } catch (IOException e) {
             throw new RuntimeException("Failed to download nanopub testsuite @ " + version, e);
         }
+    }
+
+    /**
+     * Registers a JVM shutdown hook that recursively deletes the given directory on exit.
+     * {@link java.io.File#deleteOnExit()} is unsuitable here: it never recurses and silently
+     * leaves the non-empty extraction directory (and every file in it) behind after the JVM exits.
+     */
+    private static void deleteRecursivelyOnExit(Path dir) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> FileUtils.deleteQuietly(dir.toFile())));
     }
 
     private static void fetch(String version, Path target) throws IOException {

@@ -100,5 +100,5 @@ suite.getTransformCases("rsa-key1").forEach(tc ->
 ## Notes & troubleshooting
 
 - The connector downloads GitHub tarballs (`archive/<ref>.tar.gz`). An internet connection is required when fetching a new version/commit.
-- Downloaded data is extracted into a temporary directory. The implementation deletes the downloaded tarball after extraction, but the extracted files remain in a temp dir until JVM exit (temp dir created with `deleteOnExit()`).
+- Downloaded data is extracted into a temporary directory. The implementation deletes the downloaded tarball right after extraction, and removes the extracted directory recursively on JVM exit via a shutdown hook. The extracted files stay available for the entire JVM lifetime, so entries can be used freely across a test run.
 - If extraction fails, ensure your environment allows outgoing HTTPS and has write access to the system temporary directory.
