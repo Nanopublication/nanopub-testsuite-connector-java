@@ -40,7 +40,7 @@ import org.nanopub.testsuite.TestSuiteSubfolder;
 
 NanopubTestSuite suite = NanopubTestSuite.getLatest();
 List<TestSuiteEntry> validPlains = suite.getValid(TestSuiteSubfolder.PLAIN);
-validPlains.forEach(e -> System.out.println(e.getName() + " -> " + e.getPath()));
+validPlains.forEach(e -> System.out.println(e.getName() + " -> " + e.toFile()));
 ```
 
 Load a given version of the test suite version using the commit SHA:
@@ -50,22 +50,33 @@ NanopubTestSuite atCommit = NanopubTestSuite.getAtCommit("a1b2c3d...");
 System.out.println("Loaded testsuite version: " + atCommit.getVersion());
 ```
 
-Access nanopublication entries by artifact code or full URI:
+Access nanopublication entries by artifact code or full URI. Note that a single
+artifact code or URI can map to more than one entry (e.g. the same nanopub may
+appear as both a valid and an invalid case), so the lookups return a list. Use
+the category-filtered overloads when you want a single entry.
 
 ```java
-NanopubTestSuite suite = NanopubTestSuite.getLatest();
-TestSuiteEntry entryByCode = suite.getByArtifactCode("RA1sViVmXf-W2aZW4Qk74KTaiD9gpLBPe2LhMsinHKKz8");
-System.out.println("Entry for artifact code 'RA1sViVmXf-W2aZW4Qk74KTaiD9gpLBPe2LhMsinHKKz8': " + entryByCode.getName());
+import net.trustyuri.ArtifactCode;
 
-TestSuiteEntry entryByUri = suite.getByNanopubUri("http://purl.org/np/RAPPdsJKoVVp7KZTjdS3D2MvxfkNa-G4JDrnLjeMQFwnY");
-System.out.println("Entry for URI 'http://purl.org/np/RAPPdsJKoVVp7KZTjdS3D2MvxfkNa-G4JDrnLjeMQFwnY': " + entryByUri.getName());
+NanopubTestSuite suite = NanopubTestSuite.getLatest();
+
+ArtifactCode code = ArtifactCode.of("RAPpJU5UOB4pavfWyk7FE3WQiam5yBpmIlviAQWtBSC4M");
+List<TestSuiteEntry> entriesByCode = suite.getByArtifactCode(code);
+entriesByCode.forEach(e -> System.out.println("Entry for artifact code: " + e.getName()));
+
+// Or narrow to a single entry in a given category:
+Optional<TestSuiteEntry> validByCode = suite.getByArtifactCode(code, TestSuiteCategory.VALID);
+
+List<TestSuiteEntry> entriesByUri = suite.getByNanopubUri(
+        "http://example.org/nanopub-validator-example/RAPpJU5UOB4pavfWyk7FE3WQiam5yBpmIlviAQWtBSC4M");
+entriesByUri.forEach(e -> System.out.println("Entry for URI: " + e.getName()));
 ```
 
 Access transform cases for a named signing key:
 
 ```java
 suite.getTransformCases("rsa-key1").forEach(tc ->
-    System.out.println(tc.getPlain().getName() + " -> " + tc.getSigned().getName())
+    System.out.println(tc.getPlainEntry().getName() + " -> " + tc.getSignedEntry().getName())
 );
 ```
 
@@ -77,9 +88,14 @@ suite.getTransformCases("rsa-key1").forEach(tc ->
 - `getValid(TestSuiteSubfolder)`, `getInvalid(TestSuiteSubfolder)` — filter by subfolder (`PLAIN`, `SIGNED`, `TRUSTY`).
 - `getTransformCases()` — all `TransformTestCase` instances.
 - `getTransformCases(String keyName)` — transform cases for a given signing key (e.g. `"rsa-key1"`).
-- `getSigningKey(String keyName)` — returns a `SigningKeyPair` (paths to private/public key files).
-- `getByArtifactCode(String)` — lookup by Trusty URI artifact code.
-- `getByNanopubUri(String)` — lookup by full nanopub URI.
+- `getKeyNames()` — the distinct signing key names available (e.g. `["rsa-key1", "rsa-key2"]`).
+- `getSigningKey(String keyName)` — returns a `SigningKeyPair` exposing streams (`openPrivateKey()`, `openPublicKey()`) and `File` references (`getPrivateKeyFile()`, `getPublicKeyFile()`) to the key files.
+- `getByArtifactCode(ArtifactCode)` — all entries for a Trusty URI artifact code (a `List`, since one code may appear in multiple categories).
+- `getByArtifactCode(ArtifactCode, TestSuiteCategory)` — the first matching entry in that category, as an `Optional`.
+- `getByNanopubUri(String)` — all entries sharing a full nanopub URI (a `List`).
+- `getByNanopubUri(String, TestSuiteCategory)` — the first matching entry in that category, as an `Optional`.
+- `getTransformProfile()` — the transform `profile.yaml` `File` describing the expected transformations.
+- `getVersion()` / `isLatest()` — the version string this instance tracks, and whether it is `main` rather than a pinned commit.
 
 ## Notes & troubleshooting
 
