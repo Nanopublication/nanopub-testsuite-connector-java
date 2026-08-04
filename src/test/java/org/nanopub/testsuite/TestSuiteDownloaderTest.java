@@ -1,5 +1,6 @@
 package org.nanopub.testsuite;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -10,9 +11,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TestSuiteDownloaderTest {
 
+    // Downloaded once for the whole class: every "main" assertion inspects the same
+    // extracted tree, so there is no reason to re-fetch the tarball per test method.
+    private static Path mainRoot;
+
+    @BeforeAll
+    static void downloadMain() {
+        mainRoot = TestSuiteDownloader.download("main");
+    }
+
     @Test
     void downloadMainProducesExpectedStructure() {
-        Path root = TestSuiteDownloader.download("main");
+        Path root = mainRoot;
 
         assertTrue(Files.isDirectory(root), "Root directory should exist");
         assertTrue(Files.isDirectory(root.resolve("valid")), "valid/ should exist");
@@ -22,7 +32,7 @@ class TestSuiteDownloaderTest {
 
     @Test
     void downloadMainProducesValidSubfolders() {
-        Path root = TestSuiteDownloader.download("main");
+        Path root = mainRoot;
 
         assertTrue(Files.isDirectory(root.resolve("valid/plain")), "valid/plain/ should exist");
         assertTrue(Files.isDirectory(root.resolve("valid/signed")), "valid/signed/ should exist");
@@ -31,7 +41,7 @@ class TestSuiteDownloaderTest {
 
     @Test
     void downloadMainProducesInvalidSubfolders() {
-        Path root = TestSuiteDownloader.download("main");
+        Path root = mainRoot;
 
         assertTrue(Files.isDirectory(root.resolve("invalid/plain")), "invalid/plain/ should exist");
         assertTrue(Files.isDirectory(root.resolve("invalid/signed")), "invalid/signed/ should exist");
@@ -40,7 +50,7 @@ class TestSuiteDownloaderTest {
 
     @Test
     void downloadMainProducesTransformStructure() {
-        Path root = TestSuiteDownloader.download("main");
+        Path root = mainRoot;
 
         assertTrue(Files.isDirectory(root.resolve("transform/plain")), "transform/plain/ should exist");
         assertTrue(Files.isDirectory(root.resolve("transform/signed/rsa-key1")), "transform/signed/rsa-key1/ should exist");
@@ -51,7 +61,7 @@ class TestSuiteDownloaderTest {
 
     @Test
     void downloadMainProducesNanopubFiles() throws Exception {
-        Path root = TestSuiteDownloader.download("main");
+        Path root = mainRoot;
 
         try (Stream<Path> files = Files.list(root.resolve("valid/trusty"))) {
             long trigCount = files.filter(p -> p.getFileName().toString().endsWith(".trig")).count();
@@ -61,7 +71,7 @@ class TestSuiteDownloaderTest {
 
     @Test
     void downloadMainProducesSigningKeys() throws Exception {
-        Path root = TestSuiteDownloader.download("main");
+        Path root = mainRoot;
 
         assertTrue(Files.isRegularFile(root.resolve("transform/signed/rsa-key1/key/id_rsa")), "rsa-key1 private key should exist");
         assertTrue(Files.isRegularFile(root.resolve("transform/signed/rsa-key1/key/id_rsa.pub")), "rsa-key1 public key should exist");
@@ -72,7 +82,7 @@ class TestSuiteDownloaderTest {
 
     @Test
     void downloadMainProducesOutCodeFiles() throws Exception {
-        Path root = TestSuiteDownloader.download("main");
+        Path root = mainRoot;
 
         assertTrue(Files.isRegularFile(root.resolve("transform/signed/rsa-key1/simple1.out.code")));
         String code = Files.readString(root.resolve("transform/signed/rsa-key1/simple1.out.code")).strip();
@@ -84,7 +94,7 @@ class TestSuiteDownloaderTest {
 
     @Test
     void topLevelPrefixIsStripped() throws Exception {
-        Path root = TestSuiteDownloader.download("main");
+        Path root = mainRoot;
 
         try (Stream<Path> entries = Files.list(root)) {
             boolean hasUnstrippedPrefix = entries
