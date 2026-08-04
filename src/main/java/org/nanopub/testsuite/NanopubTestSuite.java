@@ -117,7 +117,7 @@ public class NanopubTestSuite {
         String name = path.getFileName().toString();
         String nanopubUri = extractNanopubUri(path);
         ArtifactCode artifactCode = TrustyUriUtils.isPotentialTrustyUri(nanopubUri) ? ArtifactCode.of(TrustyUriUtils.getArtifactCode(nanopubUri)) : null;
-        logger.info("Indexing entry: " + name + " | category: " + cat + " | subfolder: " + sub + " | nanopub URI: " + nanopubUri + " | artifact code: " + artifactCode);
+        logger.debug("Indexing entry: {} | category: {} | subfolder: {} | nanopub URI: {} | artifact code: {}", name, cat, sub, nanopubUri, artifactCode);
         TestSuiteEntry entry = new TestSuiteEntry(name, path, cat, sub, nanopubUri, artifactCode);
         if (nanopubUri != null) {
             byNanopubUri.computeIfAbsent(nanopubUri, k -> new ArrayList<>()).add(entry);
