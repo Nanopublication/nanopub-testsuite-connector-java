@@ -1,8 +1,8 @@
 package org.nanopub.testsuite;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,8 +71,17 @@ public class NanopubTestSuite {
     private final Map<String, List<TestSuiteEntry>> byNanopubUri = new HashMap<>();
 
     private NanopubTestSuite(String version) {
+        this(version, TestSuiteDownloader.download(version));
+    }
+
+    /**
+     * Builds a suite over an already-extracted tree instead of downloading one.
+     * Package-private: it exists so tests can index a fixture directory, including
+     * the malformed trees that exercise this class's failure paths.
+     */
+    NanopubTestSuite(String version, Path root) {
         this.version = version;
-        this.root = TestSuiteDownloader.download(version);
+        this.root = root;
         buildIndex();
     }
 
@@ -128,7 +137,11 @@ public class NanopubTestSuite {
     private TestSuiteEntry buildEntry(Path path, TestSuiteCategory cat, TestSuiteSubfolder sub) {
         String name = path.getFileName().toString();
         String nanopubUri = extractNanopubUri(path);
-        ArtifactCode artifactCode = TrustyUriUtils.isPotentialTrustyUri(nanopubUri) ? ArtifactCode.of(TrustyUriUtils.getArtifactCode(nanopubUri)) : null;
+        // isPotentialTrustyUri takes an Object and calls toString() on it, so the null
+        // extractNanopubUri returns for a file it cannot read has to be caught here first.
+        ArtifactCode artifactCode = nanopubUri != null && TrustyUriUtils.isPotentialTrustyUri(nanopubUri)
+                ? ArtifactCode.of(TrustyUriUtils.getArtifactCode(nanopubUri))
+                : null;
         logger.debug("Indexing entry: {} | category: {} | subfolder: {} | nanopub URI: {} | artifact code: {}", name, cat, sub, nanopubUri, artifactCode);
         TestSuiteEntry entry = new TestSuiteEntry(name, path, cat, sub, nanopubUri, artifactCode);
         if (nanopubUri != null) {
@@ -244,12 +257,14 @@ public class NanopubTestSuite {
     }
 
     private static String extractNanopubUri(Path path) {
-        try (InputStream in = Files.newInputStream(path)) {
+        try {
+            // Test suite files are small, so they are read in one go: a stream here would
+            // have to be closed, and nothing else in this method needs one.
             Model model = new LinkedHashModel();
             RDFFormat format = resolveFormat(path.getFileName().toString());
             RDFParser parser = Rio.createParser(format);
             parser.setRDFHandler(new StatementCollector(model));
-            parser.parse(in, path.toUri().toString());
+            parser.parse(new ByteArrayInputStream(Files.readAllBytes(path)), path.toUri().toString());
 
             IRI candidateUri = Values.iri("http://www.nanopub.org/nschema#Nanopublication");
             for (Resource ctx : model.contexts()) {
@@ -257,10 +272,7 @@ public class NanopubTestSuite {
                     continue;
                 }
                 for (Statement st : model.filter(null, RDF.TYPE, candidateUri, ctx)) {
-                    Resource subj = st.getSubject();
-                    if (subj != null) {
-                        return subj.stringValue();
-                    }
+                    return st.getSubject().stringValue();
                 }
             }
             return null;
@@ -278,8 +290,11 @@ public class NanopubTestSuite {
      * depends on classpath/registration order. In this testsuite {@code .xml}
      * files are TriX, so we pin that mapping to keep parsing deterministic
      * regardless of the RDF4J parsers on the classpath.
+     * <p>
+     * Package-private so the mapping can be tested directly: indexing only ever
+     * reaches it with the extensions {@code isNanopubFile} lets through.
      */
-    private static RDFFormat resolveFormat(String fileName) {
+    static RDFFormat resolveFormat(String fileName) {
         String lower = fileName.toLowerCase(Locale.ROOT);
         if (lower.endsWith(".trig")) {
             return RDFFormat.TRIG;
