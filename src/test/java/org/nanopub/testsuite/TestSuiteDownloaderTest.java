@@ -2,6 +2,7 @@ package org.nanopub.testsuite;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -101,6 +102,17 @@ class TestSuiteDownloaderTest {
                     .anyMatch(p -> p.getFileName().toString().startsWith("nanopub-testsuite-"));
             assertFalse(hasUnstrippedPrefix, "Top-level prefix should be stripped from extracted paths");
         }
+    }
+
+    @Test
+    void theShutdownHookDeletesTheWholeExtractedTree(@TempDir Path dir) throws Exception {
+        Files.createDirectories(dir.resolve("valid/plain"));
+        Files.writeString(dir.resolve("valid/plain/np.trig"), "content");
+
+        // What the JVM runs on exit, where no assertion could ever observe it.
+        TestSuiteDownloader.deletionHook(dir).run();
+
+        assertFalse(Files.exists(dir), "The extraction directory should be gone, contents and all");
     }
 
     @Test

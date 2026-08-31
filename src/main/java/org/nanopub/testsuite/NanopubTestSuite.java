@@ -71,8 +71,17 @@ public class NanopubTestSuite {
     private final Map<String, List<TestSuiteEntry>> byNanopubUri = new HashMap<>();
 
     private NanopubTestSuite(String version) {
+        this(version, TestSuiteDownloader.download(version));
+    }
+
+    /**
+     * Builds a suite over an already-extracted tree instead of downloading one.
+     * Package-private: it exists so tests can index a fixture directory, including
+     * the malformed trees that exercise this class's failure paths.
+     */
+    NanopubTestSuite(String version, Path root) {
         this.version = version;
-        this.root = TestSuiteDownloader.download(version);
+        this.root = root;
         buildIndex();
     }
 
@@ -281,8 +290,11 @@ public class NanopubTestSuite {
      * depends on classpath/registration order. In this testsuite {@code .xml}
      * files are TriX, so we pin that mapping to keep parsing deterministic
      * regardless of the RDF4J parsers on the classpath.
+     * <p>
+     * Package-private so the mapping can be tested directly: indexing only ever
+     * reaches it with the extensions {@code isNanopubFile} lets through.
      */
-    private static RDFFormat resolveFormat(String fileName) {
+    static RDFFormat resolveFormat(String fileName) {
         String lower = fileName.toLowerCase(Locale.ROOT);
         if (lower.endsWith(".trig")) {
             return RDFFormat.TRIG;

@@ -50,7 +50,16 @@ class TestSuiteDownloader {
      * leaves the non-empty extraction directory (and every file in it) behind after the JVM exits.
      */
     private static void deleteRecursivelyOnExit(Path dir) {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> FileUtils.deleteQuietly(dir.toFile())));
+        Runtime.getRuntime().addShutdownHook(deletionHook(dir));
+    }
+
+    /**
+     * The thread registered as the shutdown hook. Package-private so a test can run
+     * the deletion itself: a hook only ever runs as the JVM exits, where nothing can
+     * assert on what it did.
+     */
+    static Thread deletionHook(Path dir) {
+        return new Thread(() -> FileUtils.deleteQuietly(dir.toFile()));
     }
 
     private static void fetch(String version, Path target) throws IOException {
