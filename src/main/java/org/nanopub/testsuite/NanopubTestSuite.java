@@ -1,8 +1,8 @@
 package org.nanopub.testsuite;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -248,12 +248,14 @@ public class NanopubTestSuite {
     }
 
     private static String extractNanopubUri(Path path) {
-        try (InputStream in = Files.newInputStream(path)) {
+        try {
+            // Test suite files are small, so they are read in one go: a stream here would
+            // have to be closed, and nothing else in this method needs one.
             Model model = new LinkedHashModel();
             RDFFormat format = resolveFormat(path.getFileName().toString());
             RDFParser parser = Rio.createParser(format);
             parser.setRDFHandler(new StatementCollector(model));
-            parser.parse(in, path.toUri().toString());
+            parser.parse(new ByteArrayInputStream(Files.readAllBytes(path)), path.toUri().toString());
 
             IRI candidateUri = Values.iri("http://www.nanopub.org/nschema#Nanopublication");
             for (Resource ctx : model.contexts()) {
@@ -261,10 +263,7 @@ public class NanopubTestSuite {
                     continue;
                 }
                 for (Statement st : model.filter(null, RDF.TYPE, candidateUri, ctx)) {
-                    Resource subj = st.getSubject();
-                    if (subj != null) {
-                        return subj.stringValue();
-                    }
+                    return st.getSubject().stringValue();
                 }
             }
             return null;
