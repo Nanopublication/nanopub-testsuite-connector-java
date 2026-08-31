@@ -128,7 +128,11 @@ public class NanopubTestSuite {
     private TestSuiteEntry buildEntry(Path path, TestSuiteCategory cat, TestSuiteSubfolder sub) {
         String name = path.getFileName().toString();
         String nanopubUri = extractNanopubUri(path);
-        ArtifactCode artifactCode = TrustyUriUtils.isPotentialTrustyUri(nanopubUri) ? ArtifactCode.of(TrustyUriUtils.getArtifactCode(nanopubUri)) : null;
+        // isPotentialTrustyUri takes an Object and calls toString() on it, so the null
+        // extractNanopubUri returns for a file it cannot read has to be caught here first.
+        ArtifactCode artifactCode = nanopubUri != null && TrustyUriUtils.isPotentialTrustyUri(nanopubUri)
+                ? ArtifactCode.of(TrustyUriUtils.getArtifactCode(nanopubUri))
+                : null;
         logger.debug("Indexing entry: {} | category: {} | subfolder: {} | nanopub URI: {} | artifact code: {}", name, cat, sub, nanopubUri, artifactCode);
         TestSuiteEntry entry = new TestSuiteEntry(name, path, cat, sub, nanopubUri, artifactCode);
         if (nanopubUri != null) {
